@@ -1,0 +1,14 @@
+{
+  "name": "taxi-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.2",
+    "twilio": "^4.0.0",
+    "body-parser": "^1.20.2"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
