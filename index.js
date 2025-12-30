@@ -1,6 +1,8 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { twiml } from "twilio";
+import Twilio from "twilio";
+
+const { twiml } = Twilio;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -18,36 +20,42 @@ app.post("/voice", (req, res) => {
   // 1. otázka – pickup
   if (step === 0) {
     sessions[callSid] = { step: 1 };
-    response.gather({
-      input: "speech",
-      action: "/voice",
-      speechTimeout: "auto",
-      language: "sk-SK"
-    }).say("Dobrý deň, kam vás máme vyzdvihnúť?");
+    response
+      .gather({
+        input: "speech",
+        action: "/voice",
+        speechTimeout: "auto",
+        language: "sk-SK"
+      })
+      .say("Dobrý deň, kam vás máme vyzdvihnúť?");
   }
 
   // 2. otázka – dropoff
   else if (step === 1) {
     sessions[callSid].pickup = speech;
     sessions[callSid].step = 2;
-    response.gather({
-      input: "speech",
-      action: "/voice",
-      speechTimeout: "auto",
-      language: "sk-SK"
-    }).say("Ďakujem. A kam idete?");
+    response
+      .gather({
+        input: "speech",
+        action: "/voice",
+        speechTimeout: "auto",
+        language: "sk-SK"
+      })
+      .say("Ďakujem. A kam idete?");
   }
 
   // 3. otázka – čas jazdy
   else if (step === 2) {
     sessions[callSid].dropoff = speech;
     sessions[callSid].step = 3;
-    response.gather({
-      input: "speech",
-      action: "/voice",
-      speechTimeout: "auto",
-      language: "sk-SK"
-    }).say("Kedy chcete jazdu?");
+    response
+      .gather({
+        input: "speech",
+        action: "/voice",
+        speechTimeout: "auto",
+        language: "sk-SK"
+      })
+      .say("Kedy chcete jazdu?");
   }
 
   // 4. potvrdenie
@@ -61,7 +69,6 @@ app.post("/voice", (req, res) => {
       `Ďakujem. Vaša jazda je z ${pickup} do ${dropoff} o ${time}. Dispečer vás bude kontaktovať. Prajem pekný deň.`
     );
 
-    // tu môžeš poslať SMS, uložiť do kalendára, webhook atď.
     console.log("Nová jazda:", sessions[callSid]);
   }
 
@@ -69,6 +76,11 @@ app.post("/voice", (req, res) => {
   res.send(response.toString());
 });
 
-// Railway port
+// testovacia route pre Render
+app.get("/", (req, res) => {
+  res.send("TaxiBot backend beží");
+});
+
+// Render port
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log("Taxi bot beží na porte " + port));
