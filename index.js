@@ -1,6 +1,8 @@
 import express from "express";
 import bodyParser from "body-parser";
 import axios from "axios";
+import fs from "fs";
+import path from "path";
 
 const app = express();
 app.use(bodyParser.json());
@@ -9,12 +11,15 @@ app.use(bodyParser.json());
 const TOKEN = "8447861013:AAFtQh4cYuO63j8jYaEfA6Cx74Xeu5FrTp4";
 const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 
-// Tvoje admin chat ID
+// Admin chat ID
 const ADMIN_CHAT_ID = 7646102788;
 
 // Session storage
 const sessions = {};
 
+// -----------------------------
+// TELEGRAM SEND MESSAGE
+// -----------------------------
 function sendMessage(chatId, text) {
   return axios.post(`${TELEGRAM_API}/sendMessage`, {
     chat_id: chatId,
@@ -23,7 +28,84 @@ function sendMessage(chatId, text) {
   });
 }
 
-// Pomocná funkcia na spracovanie dátumu
+// -----------------------------
+// TELEGRAM SEND DOCUMENT
+// -----------------------------
+function sendDocument(chatId, filePath) {
+  const formData = new FormData();
+  formData.append("chat_id", chatId);
+  formData.append("document", fs.createReadStream(filePath));
+
+  return axios.post(`${TELEGRAM_API}/sendDocument`, formData, {
+    headers: formData.getHeaders()
+  });
+}
+
+// -----------------------------
+// CENNÍK + HAVERSINE
+// -----------------------------
+const PRICE_PER_KM = 1.20;
+const BASE_FEE = 1.50;
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function calculatePrice(km) {
+  return (BASE_FEE + km * PRICE_PER_KM).toFixed(2);
+}
+
+// -----------------------------
+// ICS GENERATOR
+// -----------------------------
+function addEventToCalendar(order) {
+  const filePath = path.join(process.cwd(), "taxi-goral.ics");
+
+  const event = `
+BEGIN:VEVENT
+UID:${order.id}@taxigoral
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(order.start)}
+DTEND:${formatDate(order.end)}
+SUMMARY:Taxi Goral – jazda
+DESCRIPTION:Vyzdvihnutie: ${order.from}\\nCieľ: ${order.to}\\nCena: ${order.price} €
+LOCATION:${order.from}
+END:VEVENT
+`;
+
+  let calendar;
+
+  if (fs.existsSync(filePath)) {
+    calendar = fs.readFileSync(filePath, "utf8");
+    calendar = calendar.replace("END:VCALENDAR", event + "END:VCALENDAR");
+  } else {
+    calendar = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Taxi Goral//EN
+${event}END:VCALENDAR`;
+  }
+
+  fs.writeFileSync(filePath, calendar, "utf8");
+  return filePath;
+}
+
+function formatDate(date) {
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+// -----------------------------
+// DATE PARSER
+// -----------------------------
 function parseDate(input) {
   const lower = input.toLowerCase();
 
@@ -38,7 +120,6 @@ function parseDate(input) {
     return d.toISOString().split("T")[0];
   }
 
-  // Formát 1.2.2025
   if (input.includes(".")) {
     const parts = input.split(".");
     if (parts.length === 3) {
@@ -47,14 +128,14 @@ function parseDate(input) {
     }
   }
 
-  // Formát 2025-02-01
-  if (input.includes("-")) {
-    return input;
-  }
+  if (input.includes("-")) return input;
 
   return null;
 }
 
+// -----------------------------
+// TELEGRAM WEBHOOK
+// -----------------------------
 app.post("/webhook", async (req, res) => {
   const msg = req.body.message;
   if (!msg || !msg.text) return res.sendStatus(200);
@@ -62,27 +143,25 @@ app.post("/webhook", async (req, res) => {
   const chatId = msg.chat.id;
   const text = msg.text.trim();
 
-  // /id príkaz
   if (text === "/id") {
     await sendMessage(chatId, `Tvoje chat ID je: \`${chatId}\``);
     return res.sendStatus(200);
   }
 
-  // Inicializácia session
   if (!sessions[chatId]) {
     sessions[chatId] = { step: 0, data: {} };
   }
 
   const session = sessions[chatId];
 
-  // KROK 0 — uvítanie
+  // KROK 0
   if (session.step === 0) {
     await sendMessage(chatId, "Vitaj v *Taxi Goral* 🚖\nNapíš prosím *adresu vyzdvihnutia*.");
     session.step = 1;
     return res.sendStatus(200);
   }
 
-  // KROK 1 — adresa vyzdvihnutia
+  // KROK 1
   if (session.step === 1) {
     session.data.from = text;
     await sendMessage(chatId, "Super. Teraz napíš *cieľ jazdy*.");
@@ -90,46 +169,50 @@ app.post("/webhook", async (req, res) => {
     return res.sendStatus(200);
   }
 
-  // KROK 2 — cieľ jazdy
+  // KROK 2
   if (session.step === 2) {
     session.data.to = text;
-    await sendMessage(chatId, "Na ktorý *deň* chceš jazdu? (napr. 2025-02-01, 1.2.2025, dnes, zajtra)");
+    await sendMessage(chatId, "Na ktorý *deň* chceš jazdu?");
     session.step = 3;
     return res.sendStatus(200);
   }
 
-  // KROK 3 — dátum jazdy
+  // KROK 3
   if (session.step === 3) {
     const parsed = parseDate(text);
-
     if (!parsed) {
-      await sendMessage(chatId, "Nerozumiem dátumu. Skús napr. *2025-02-01* alebo *zajtra*.");
+      await sendMessage(chatId, "Nerozumiem dátumu.");
       return res.sendStatus(200);
     }
 
     session.data.date = parsed;
-    await sendMessage(chatId, "A teraz napíš *čas jazdy* (napr. 14:30).");
+    await sendMessage(chatId, "Napíš *čas jazdy* (napr. 14:30).");
     session.step = 4;
     return res.sendStatus(200);
   }
 
-  // KROK 4 — čas jazdy
+  // KROK 4
   if (session.step === 4) {
     session.data.time = text;
 
-    // Spojenie dátumu + času
     const [h, m] = text.split(":");
-    const fullISO = new Date(`${session.data.date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00`).toISOString();
-    session.data.datetimeISO = fullISO;
+    const start = new Date(`${session.data.date}T${h}:${m}:00`);
+    const end = new Date(start.getTime() + 20 * 60000);
 
-    await sendMessage(chatId, "Aké je tvoje *telefónne číslo*? 📞");
+    session.data.start = start;
+    session.data.end = end;
+
+    await sendMessage(chatId, "Aké je tvoje *telefónne číslo*?");
     session.step = 5;
     return res.sendStatus(200);
   }
 
-  // KROK 5 — telefónne číslo
+  // KROK 5 — dokončenie
   if (session.step === 5) {
     session.data.phone = text;
+
+    // Výpočet ceny (zatím bez GPS → fixná cena)
+    const price = "7.80";
 
     const summary = `
 📦 *Nová objednávka jazdy*
@@ -138,17 +221,24 @@ app.post("/webhook", async (req, res) => {
 📅 Dátum: ${session.data.date}
 ⏰ Čas: ${session.data.time}
 📞 Telefón: ${session.data.phone}
-    `;
+💶 Cena: ${price} €
+`;
 
-    // Potvrdenie zákazníkovi
     await sendMessage(chatId, "Ďakujem, jazda bola prijatá! 🚖");
     await sendMessage(chatId, summary);
 
-    // Notifikácia adminovi
-    await sendMessage(
-      ADMIN_CHAT_ID,
-      `🔔 *Nová objednávka od zákazníka*\n${summary}\n\n👤 Chat ID zákazníka: \`${chatId}\`\n🕒 ISO: ${session.data.datetimeISO}`
-    );
+    // ICS event
+    const filePath = addEventToCalendar({
+      id: Date.now(),
+      from: session.data.from,
+      to: session.data.to,
+      start: session.data.start,
+      end: session.data.end,
+      price
+    });
+
+    // Pošli ICS adminovi
+    await sendDocument(ADMIN_CHAT_ID, filePath);
 
     delete sessions[chatId];
     return res.sendStatus(200);
