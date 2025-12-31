@@ -1,1 +1,570 @@
+[
+  {
+    "street": "A. Hlinku",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736820,
+    "lon": 19.146210
+  },
+  {
+    "street": "A. Sládkoviča",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.739520,
+    "lon": 19.160480
+  },
+  {
+    "street": "Alexyho",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744210,
+    "lon": 19.165330
+  },
+  {
+    "street": "Andreja Kmeťa",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736900,
+    "lon": 19.150200
+  },
+  {
+    "street": "Bachledova",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.757210,
+    "lon": 19.133900
+  },
+  {
+    "street": "Bakossova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736510,
+    "lon": 19.149880
+  },
+  {
+    "street": "Balážova",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.748900,
+    "lon": 19.121500
+  },
+  {
+    "street": "Bardinská",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.741900,
+    "lon": 19.162700
+  },
+  {
+    "street": "Bazovského",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744900,
+    "lon": 19.166200
+  },
+  {
+    "street": "Belveder",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.739700,
+    "lon": 19.153900
+  },
+  {
+    "street": "Biely Potok",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.760200,
+    "lon": 19.130900
+  },
+  {
+    "street": "Borová",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.749800,
+    "lon": 19.118900
+  },
+  {
+    "street": "Bratislavská",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.741200,
+    "lon": 19.158900
+  },
+  {
+    "street": "Brezová",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750900,
+    "lon": 19.119700
+  },
+  {
+    "street": "Cesta k nemocnici",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736900,
+    "lon": 19.155200
+  },
+  {
+    "street": "Cesta na amfiteáter",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.739200,
+    "lon": 19.152300
+  },
 
+  {
+    "street": "Daxnerova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736400,
+    "lon": 19.147900
+  },
+  {
+    "street": "Dlhá",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.751800,
+    "lon": 19.120700
+  },
+  {
+    "street": "Dolná",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736900,
+    "lon": 19.149300
+  },
+  {
+    "street": "Dončova",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.741500,
+    "lon": 19.160900
+  },
+  {
+    "street": "Dubová",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750200,
+    "lon": 19.118300
+  },
+  {
+    "street": "Edisonova",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744600,
+    "lon": 19.164900
+  },
+  {
+    "street": "F. Kráľa",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737200,
+    "lon": 19.151900
+  },
+  {
+    "street": "Fučíkova",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742300,
+    "lon": 19.159900
+  },
+  {
+    "street": "Gaštanová",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.749300,
+    "lon": 19.119200
+  },
+  {
+    "street": "Gorkého",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737900,
+    "lon": 19.152700
+  },
+  {
+    "street": "Graniar",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.758900,
+    "lon": 19.135200
+  },
+  {
+    "street": "Hlboká",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750600,
+    "lon": 19.117900
+  },
+  {
+    "street": "Horná",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737200,
+    "lon": 19.148900
+  },
+  {
+    "street": "Hronská",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742900,
+    "lon": 19.161800
+  },
+  {
+    "street": "Hurbanova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737600,
+    "lon": 19.150800
+  },
+  {
+    "street": "Chalupkova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737800,
+    "lon": 19.153400
+  },
+  {
+    "street": "Chrenoviská",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.759900,
+    "lon": 19.132800
+  },
+  {
+    "street": "J. Bottu",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742600,
+    "lon": 19.160400
+  },
+  {
+    "street": "J. Kollára",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737900,
+    "lon": 19.151200
+  },
+  {
+    "street": "J. Murgaša",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744800,
+    "lon": 19.165700
+  },
+  {
+    "street": "J. Simora",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.749900,
+    "lon": 19.120200
+  },
+  {
+    "street": "Janka Kráľa",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737500,
+    "lon": 19.150100
+  },
+  {
+    "street": "Jesenského",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742100,
+    "lon": 19.159300
+  },
+  {
+    "street": "Jilemnického",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744300,
+    "lon": 19.166900
+  },
+  {
+    "street": "Kalinčiakova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737300,
+    "lon": 19.152200
+  },
+  {
+    "street": "Karpatská",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.758200,
+    "lon": 19.134700
+  },
+  {
+    "street": "Kollárova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737800,
+    "lon": 19.149900
+  },
+  {
+    "street": "Komenského",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742800,
+    "lon": 19.161200
+  },
+  {
+    "street": "Kremnička",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.748200,
+    "lon": 19.118100
+  },
+  {
+    "street": "Krivánska",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.759300,
+    "lon": 19.133400
+  },
+  {
+    "street": "Kukučínova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737600,
+    "lon": 19.151700
+  },
+  {
+    "street": "Laskomerská",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.751200,
+    "lon": 19.119900
+  },
+  {
+    "street": "Lazovná",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737000,
+    "lon": 19.148200
+  },
+  {
+    "street": "Lichardova",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742400,
+    "lon": 19.160700
+  },
+  {
+    "street": "Lipová",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750400,
+    "lon": 19.118500
+  },
+  {
+    "street": "Majerská cesta",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.749200,
+    "lon": 19.117200
+  },
+  {
+    "street": "Moskovská",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744500,
+    "lon": 19.164200
+  },
+  {
+    "street": "Moyzesova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737400,
+    "lon": 19.150600
+  },
+  {
+    "street": "Námestie SNP",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.736900,
+    "lon": 19.149000
+  },
+  {
+    "street": "Národná",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737200,
+    "lon": 19.148500
+  },
+  {
+    "street": "Partizánska cesta",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.739800,
+    "lon": 19.153200
+  },
+  {
+    "street": "Poľná",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750800,
+    "lon": 19.118800
+  },
+  {
+    "street": "Robotnícka",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.738300,
+    "lon": 19.152900
+  },
+  {
+    "street": "Sadová",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750300,
+    "lon": 19.119400
+  },
+  {
+    "street": "Severná",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.758500,
+    "lon": 19.133100
+  },
+  {
+    "street": "Sitnianska",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744700,
+    "lon": 19.165900
+  },
+  {
+    "street": "Skuteckého",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737800,
+    "lon": 19.152400
+  },
+  {
+    "street": "Sládkovičova",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742200,
+    "lon": 19.160200
+  },
+  {
+    "street": "Slnečná",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750700,
+    "lon": 19.118600
+  },
+  {
+    "street": "Smreková",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.749600,
+    "lon": 19.119000
+  },
+  {
+    "street": "Sokolská",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737400,
+    "lon": 19.149700
+  },
+  {
+    "street": "Spojová",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744200,
+    "lon": 19.165200
+  },
+  {
+    "street": "Strmá",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.759100,
+    "lon": 19.132900
+  },
+  {
+    "street": "Svätoplukova",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.737900,
+    "lon": 19.151400
+  },
+  {
+    "street": "Šalgotarjánska",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742700,
+    "lon": 19.161500
+  },
+  {
+    "street": "Švermova",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744900,
+    "lon": 19.166400
+  },
+  {
+    "street": "Tatranská",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.758300,
+    "lon": 19.134200
+  },
+  {
+    "street": "Trieda SNP",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.739100,
+    "lon": 19.153600
+  },
+  {
+    "street": "Tulská",
+    "city": "Banská Bystrica",
+    "psc": "97404",
+    "lat": 48.744400,
+    "lon": 19.165000
+  },
+  {
+    "street": "Uhlisko",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.742000,
+    "lon": 19.159700
+  },
+  {
+    "street": "Úsvit",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.758700,
+    "lon": 19.133300
+  },
+  {
+    "street": "Veterná",
+    "city": "Banská Bystrica",
+    "psc": "97409",
+    "lat": 48.750100,
+    "lon": 19.118200
+  },
+  {
+    "street": "Vrchárska",
+    "city": "Banská Bystrica",
+    "psc": "97411",
+    "lat": 48.759400,
+    "lon": 19.132700
+  },
+  {
+    "street": "Zvolenská cesta",
+    "city": "Banská Bystrica",
+    "psc": "97405",
+    "lat": 48.741800,
+    "lon": 19.158400
+  },
+  {
+    "street": "Železničná",
+    "city": "Banská Bystrica",
+    "psc": "97401",
+    "lat": 48.738200,
+    "lon": 19.152200
+  }
+]
