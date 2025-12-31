@@ -9,8 +9,8 @@ app.use(bodyParser.json());
 const TOKEN = "8447861013:AAFtQh4cYuO63j8jYaEfA6Cx74Xeu5FrTp4";
 const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 
-// ADMIN CHAT ID doplníš neskôr
-const ADMIN_CHAT_ID = 123456789;
+// Sem sme doplnili tvoje chat ID
+const ADMIN_CHAT_ID = 7646102788;
 
 // Session storage
 const sessions = {};
@@ -77,12 +77,15 @@ app.post("/webhook", async (req, res) => {
 ⏰ Čas: ${session.data.time}
     `;
 
+    // Potvrdenie zákazníkovi
     await sendMessage(chatId, "Ďakujem, jazda bola prijatá! 🚖");
     await sendMessage(chatId, summary);
 
-    if (ADMIN_CHAT_ID !== 123456789) {
-      await sendMessage(ADMIN_CHAT_ID, `🔔 *Nová objednávka*\n${summary}`);
-    }
+    // Notifikácia adminovi (tebe)
+    await sendMessage(
+      ADMIN_CHAT_ID,
+      `🔔 *Nová objednávka od zákazníka*\n${summary}\n\n👤 Chat ID zákazníka: \`${chatId}\``
+    );
 
     delete sessions[chatId];
     return res.sendStatus(200);
