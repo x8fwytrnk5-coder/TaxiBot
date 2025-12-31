@@ -47,33 +47,54 @@ async function sendDocument(chatId, filePath) {
 }
 
 // -----------------------------
-// ICS GENERATOR
+// ICS GENERATOR (SAFE VERSION)
 // -----------------------------
 function addEventToCalendar(order) {
   const filePath = "/tmp/taxi-goral.ics"; // Render-safe path
 
-  const event = `
-BEGIN:VEVENT
-UID:${order.id}@taxigoral
-DTSTAMP:${formatDate(new Date())}
-DTSTART:${formatDate(order.start)}
-DTEND:${formatDate(order.end)}
-SUMMARY:Taxi Goral – jazda
-DESCRIPTION:Vyzdvihnutie: ${order.from}\\nCieľ: ${order.to}\\nCena: ${order.price} €
-LOCATION:${order.from}
-END:VEVENT
-`;
+  const eventLines = [
+    "BEGIN:VEVENT",
+    `UID:${order.id}@taxigoral`,
+    `DTSTAMP:${formatDate(new Date())}`,
+    `DTSTART:${formatDate(order.start)}`,
+    `DTEND:${formatDate(order.end)}`,
+    "SUMMARY:Taxi Goral – jazda",
+    `DESCRIPTION:Vyzdvihnutie: ${order.from}\\nCieľ: ${order.to}\\nCena: ${order.price} €`,
+    `LOCATION:${order.from}`,
+    "END:VEVENT"
+  ];
+
+  const event = eventLines.join("\n");
 
   let calendar;
 
   if (fs.existsSync(filePath)) {
     calendar = fs.readFileSync(filePath, "utf8");
-    calendar = calendar.replace("END:VCALENDAR", event + "END:VCALENDAR");
+    calendar = calendar.replace("END:VCALENDAR", event + "\nEND:VCALENDAR");
   } else {
-    calendar = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Taxi Goral//EN
-${event}END:VCALENDAR`;
+    calendar = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Taxi Goral//EN",
+      event,
+      "END:VCALENDAR"
+    ].join("\n");
   }
 
-  fs.writeFileSync(filePath, calendar
+  fs.writeFileSync(filePath, calendar, "utf8");
+  return filePath;
+}
+
+function formatDate(date) {
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+// -----------------------------
+// DATE PARSER
+// -----------------------------
+function parseDate(input) {
+  const lower = input.toLowerCase();
+
+  if (lower === "dnes") {
+    const d = new Date();
+    return d.toISOString().split
