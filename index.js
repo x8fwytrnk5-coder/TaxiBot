@@ -1,86 +1,90 @@
 import express from "express";
 import bodyParser from "body-parser";
-import Twilio from "twilio";
-
-const { twiml } = Twilio;
+import axios from "axios";
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-// jednoduchá pamäť pre každý hovor
-let sessions = {};
+const TOKEN = "8447861013:AAFtQh4cYuO63j8jYaEfA6Cx74Xeu5FrTp4";
+const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
+const ADMIN_CHAT_ID = 123456789; // sem doplníme tvoje ID
 
-app.post("/voice", (req, res) => {
-  const callSid = req.body.CallSid;
-  const speech = req.body.SpeechResult?.trim() || "";
-  const step = sessions[callSid]?.step || 0;
+// Dočasné úložisko objednávok
+const sessions = {};
 
-  const response = new twiml.VoiceResponse();
+function sendMessage(chatId, text) {
+  return axios.post(`${TELEGRAM_API}/sendMessage`, {
+    chat_id: chatId,
+    text,
+  });
+}
 
-  // 1. otázka – pickup
-  if (step === 0) {
-    sessions[callSid] = { step: 1 };
-    response
-      .gather({
-        input: "speech",
-        action: "/voice",
-        speechTimeout: "auto",
-        language: "sk-SK"
-      })
-      .say("Dobrý deň, kam vás máme vyzdvihnúť?");
+app.post("/webhook", async (req, res) => {
+  const msg = req.body.message;
+  if (!msg || !msg.text) return res.sendStatus(200);
+
+  const chatId = msg.chat.id;
+  const text = msg.text;
+
+  // Ak nemáme session, vytvoríme
+  if (!sessions[chatId]) {
+    sessions[chatId] = { step: 0, data: {} };
   }
 
-  // 2. otázka – dropoff
-  else if (step === 1) {
-    sessions[callSid].pickup = speech;
-    sessions[callSid].step = 2;
-    response
-      .gather({
-        input: "speech",
-        action: "/voice",
-        speechTimeout: "auto",
-        language: "sk-SK"
-      })
-      .say("Ďakujem. A kam idete?");
+  const session = sessions[chatId];
+
+  // KROK 0 – Začiatok objednávky
+  if (session.step === 0) {
+    await sendMessage(chatId, "Vitaj v Taxi Goral 🚖\nNapíš prosím *adresu vyzdvihnutia*.");
+    session.step = 1;
+    return res.sendStatus(200);
   }
 
-  // 3. otázka – čas jazdy
-  else if (step === 2) {
-    sessions[callSid].dropoff = speech;
-    sessions[callSid].step = 3;
-    response
-      .gather({
-        input: "speech",
-        action: "/voice",
-        speechTimeout: "auto",
-        language: "sk-SK"
-      })
-      .say("Kedy chcete jazdu?");
+  // KROK 1 – Adresa
+  if (session.step === 1) {
+    session.data.from = text;
+    await sendMessage(chatId, "Super. Teraz napíš *cieľ jazdy*.");
+    session.step = 2;
+    return res.sendStatus(200);
   }
 
-  // 4. potvrdenie
-  else if (step === 3) {
-    sessions[callSid].time = speech;
-    sessions[callSid].step = 4;
-
-    const { pickup, dropoff, time } = sessions[callSid];
-
-    response.say(
-      `Ďakujem. Vaša jazda je z ${pickup} do ${dropoff} o ${time}. Dispečer vás bude kontaktovať. Prajem pekný deň.`
-    );
-
-    console.log("Nová jazda:", sessions[callSid]);
+  // KROK 2 – Cieľ
+  if (session.step === 2) {
+    session.data.to = text;
+    await sendMessage(chatId, "Kedy chceš jazdu? Napíš *čas* (napr. 14:30).");
+    session.step = 3;
+    return res.sendStatus(200);
   }
 
-  res.type("text/xml");
-  res.send(response.toString());
+  // KROK 3 – Čas
+  if (session.step === 3) {
+    session.data.time = text;
+
+    const summary = `
+📦 *Nová objednávka jazdy*
+📍 Odkiaľ: ${session.data.from}
+🎯 Kam: ${session.data.to}
+⏰ Čas: ${session.data.time}
+    `;
+
+    // Pošleme zákazníkovi potvrdenie
+    await sendMessage(chatId, "Ďakujem, jazda bola prijatá! 🚖");
+    await sendMessage(chatId, summary);
+
+    // Pošleme adminovi (tebe)
+    await sendMessage(ADMIN_CHAT_ID, `🔔 *Nová objednávka od zákazníka*\n${summary}`);
+
+    // Reset session
+    delete sessions[chatId];
+
+    return res.sendStatus(200);
+  }
+
+  res.sendStatus(200);
 });
 
-// testovacia route pre Render
 app.get("/", (req, res) => {
-  res.send("TaxiBot backend beží");
+  res.send("TaxiGoralBot beží.");
 });
 
-// Render port
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log("Taxi bot beží na porte " + port));
+app.listen(3000, () => console.log("Server beží na porte 3000"));
