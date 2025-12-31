@@ -232,7 +232,26 @@ app.post("/webhook", async (req, res) => {
   res.sendStatus(200);
 });
 
-// Healthcheck
+// -----------------------------
+// PUBLIC ICS ENDPOINT
+// -----------------------------
+app.get("/calendar.ics", (req, res) => {
+  const filePath = "/tmp/taxi-goral.ics";
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("Calendar not found");
+  }
+
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  res.setHeader("Content-Disposition", "inline; filename=taxi-goral.ics");
+
+  const data = fs.readFileSync(filePath, "utf8");
+  res.send(data);
+});
+
+// -----------------------------
+// HEALTHCHECK
+// -----------------------------
 app.get("/", (req, res) => {
   res.send("TaxiGoralBot beží.");
 });
