@@ -16,6 +16,10 @@ const ADMIN_CHAT_ID = 7646102788;
 // Načítanie datasetu
 const streets = JSON.parse(fs.readFileSync("streets-bb.json", "utf8"));
 
+// DEBUG LOGY
+console.log("Načítaných ulíc:", streets.length);
+console.log("Pracovný priečinok:", process.cwd());
+
 // Session storage
 const sessions = {};
 
