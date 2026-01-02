@@ -16,8 +16,6 @@ const ADMIN_CHAT_ID = 7646102788;
 
 // Session storage
 const sessions = {};
-
-// Uložené objednávky (pre kontrolu kolízií)
 const orders = [];
 
 // -----------------------------
@@ -35,10 +33,7 @@ function sendMessage(chatId, text) {
 // SEND DOCUMENT (ICS)
 // -----------------------------
 async function sendDocument(chatId, filePath) {
-  if (!fs.existsSync(filePath)) {
-    console.error("❌ ICS file not found:", filePath);
-    return;
-  }
+  if (!fs.existsSync(filePath)) return;
 
   const formData = new FormData();
   formData.append("chat_id", chatId);
@@ -50,10 +45,10 @@ async function sendDocument(chatId, filePath) {
 }
 
 // -----------------------------
-// ICS GENERATOR (SAFE VERSION)
+// ICS GENERATOR
 // -----------------------------
 function addEventToCalendar(order) {
-  const filePath = "/tmp/taxi-goral.ics"; // Render-safe path
+  const filePath = "/tmp/taxi-goral.ics";
 
   const eventLines = [
     "BEGIN:VEVENT",
@@ -120,6 +115,73 @@ function parseDate(input) {
   if (input.includes("-")) return input;
 
   return null;
+}
+
+// -----------------------------
+// GEOCODING (Nominatim)
+// -----------------------------
+async function geocode(address) {
+  try {
+    const url = "https://nominatim.openstreetmap.org/search";
+
+    const response = await axios.get(url, {
+      params: {
+        q: address,
+        format: "json",
+        limit: 1,
+        countrycodes: "sk"
+      },
+      headers: {
+        "User-Agent": "TaxiGoralBot"
+      }
+    });
+
+    if (!response.data || response.data.length === 0) return null;
+
+    const place = response.data[0];
+    return [parseFloat(place.lon), parseFloat(place.lat)];
+  } catch (err) {
+    console.error("❌ Geocode error:", err.message);
+    return null;
+  }
+}
+
+// -----------------------------
+// ROUTING (OSRM)
+// -----------------------------
+async function getRoute(from, to) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[0]},${from[1]};${to[0]},${to[1]}`;
+
+    const response = await axios.get(url, {
+      params: {
+        overview: "false"
+      }
+    });
+
+    if (!response.data.routes || response.data.routes.length === 0) return null;
+
+    const route = response.data.routes[0];
+
+    return {
+      distanceKm: route.distance / 1000,
+      durationMin: route.duration / 60
+    };
+  } catch (err) {
+    console.error("❌ OSRM routing error:", err.message);
+    return null;
+  }
+}
+
+// -----------------------------
+// PRICE CALCULATION
+// -----------------------------
+function calculatePrice(distanceKm, durationMin) {
+  const base = 7.80;
+  const perKm = 1.00;
+  const perMin = 0.20;
+
+  return (base + distanceKm * perKm + durationMin * perMin).toFixed(2);
 }
 
 // -----------------------------
@@ -200,11 +262,29 @@ app.post("/webhook", async (req, res) => {
   if (session.step === 5) {
     session.data.phone = text;
 
-    const price = "7.80"; // zatiaľ fixná cena
+    // GEOCODE
+    const fromCoords = await geocode(session.data.from);
+    if (!fromCoords) {
+      await sendMessage(chatId, "❌ Nepodarilo sa nájsť adresu vyzdvihnutia.");
+      return res.sendStatus(200);
+    }
 
-    // -----------------------------
-    // KONTROLA KOLÍZIE
-    // -----------------------------
+    const toCoords = await geocode(session.data.to);
+    if (!toCoords) {
+      await sendMessage(chatId, "❌ Nepodarilo sa nájsť cieľovú adresu.");
+      return res.sendStatus(200);
+    }
+
+    // ROUTE
+    const route = await getRoute(fromCoords, toCoords);
+    if (!route) {
+      await sendMessage(chatId, "❌ Nepodarilo sa vypočítať trasu.");
+      return res.sendStatus(200);
+    }
+
+    const price = calculatePrice(route.distanceKm, route.durationMin);
+
+    // KOLÍZIA
     const newStart = session.data.start;
     const newEnd = session.data.end;
 
@@ -220,9 +300,7 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // -----------------------------
     // ULOŽENIE OBJEDNÁVKY
-    // -----------------------------
     orders.push({
       start: session.data.start,
       end: session.data.end,
@@ -245,7 +323,7 @@ app.post("/webhook", async (req, res) => {
     await sendMessage(chatId, "Objednávka zapísaná. 🚖");
     await sendMessage(chatId, summary);
 
-    // ICS event
+    // ICS
     const filePath = addEventToCalendar({
       id: Date.now(),
       from: session.data.from,
@@ -255,7 +333,6 @@ app.post("/webhook", async (req, res) => {
       price
     });
 
-    // Pošli ICS adminovi
     await sendDocument(ADMIN_CHAT_ID, filePath);
 
     delete sessions[chatId];
