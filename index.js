@@ -147,6 +147,25 @@ async function geocode(address) {
 }
 
 // -----------------------------
+// OSRM NEAREST (snap to road)
+// -----------------------------
+async function snapToRoad(coords) {
+  try {
+    const url = `https://router.project-osrm.org/nearest/v1/driving/${coords[0]},${coords[1]}`;
+    const response = await axios.get(url);
+
+    if (!response.data.waypoints || response.data.waypoints.length === 0) {
+      return coords;
+    }
+
+    return response.data.waypoints[0].location; // [lon, lat]
+  } catch (err) {
+    console.error("❌ OSRM nearest error:", err.message);
+    return coords;
+  }
+}
+
+// -----------------------------
 // ROUTING (OSRM)
 // -----------------------------
 async function getRoute(from, to) {
@@ -175,11 +194,18 @@ async function getRoute(from, to) {
 // PRICE CALCULATION
 // -----------------------------
 function calculatePrice(distanceKm) {
-  const base = 3;        // základ
-  const perKm = 0.85;    // cena za km
+  const base = 3;
+  const perKm = 0.85;
+
   const raw = base + distanceKm * perKm;
 
-  return Math.max(4, raw).toFixed(2); // minimálna cena 4 €
+  // mestský strop do 5 km
+  if (distanceKm <= 5) {
+    return Math.min(6.5, Math.max(4, raw)).toFixed(2);
+  }
+
+  // mimo mesta
+  return Math.max(4, raw).toFixed(2);
 }
 
 // -----------------------------
@@ -261,17 +287,17 @@ app.post("/webhook", async (req, res) => {
     session.data.phone = text;
 
     // GEOCODE
-    const fromCoords = await geocode(session.data.from);
-    if (!fromCoords) {
-      await sendMessage(chatId, "❌ Nepodarilo sa nájsť adresu vyzdvihnutia.");
+    let fromCoords = await geocode(session.data.from);
+    let toCoords = await geocode(session.data.to);
+
+    if (!fromCoords || !toCoords) {
+      await sendMessage(chatId, "❌ Nepodarilo sa nájsť adresu.");
       return res.sendStatus(200);
     }
 
-    const toCoords = await geocode(session.data.to);
-    if (!toCoords) {
-      await sendMessage(chatId, "❌ Nepodarilo sa nájsť cieľovú adresu.");
-      return res.sendStatus(200);
-    }
+    // SNAP TO ROAD
+    fromCoords = await snapToRoad(fromCoords);
+    toCoords = await snapToRoad(toCoords);
 
     // ROUTE
     const route = await getRoute(fromCoords, toCoords);
