@@ -14,8 +14,10 @@ const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 // Admin chat ID
 const ADMIN_CHAT_ID = 7646102788;
 
-// Sessions + orders
+// Session storage
 const sessions = {};
+
+// Uložené objednávky (pre kontrolu kolízií)
 const orders = [];
 
 // -----------------------------
@@ -33,7 +35,10 @@ function sendMessage(chatId, text) {
 // SEND DOCUMENT (ICS)
 // -----------------------------
 async function sendDocument(chatId, filePath) {
-  if (!fs.existsSync(filePath)) return;
+  if (!fs.existsSync(filePath)) {
+    console.error("❌ ICS file not found:", filePath);
+    return;
+  }
 
   const formData = new FormData();
   formData.append("chat_id", chatId);
@@ -45,10 +50,10 @@ async function sendDocument(chatId, filePath) {
 }
 
 // -----------------------------
-// ICS GENERATOR
+// ICS GENERATOR (SAFE VERSION)
 // -----------------------------
 function addEventToCalendar(order) {
-  const filePath = "/tmp/taxi-goral.ics";
+  const filePath = "/tmp/taxi-goral.ics"; // Render-safe path
 
   const eventLines = [
     "BEGIN:VEVENT",
@@ -115,97 +120,6 @@ function parseDate(input) {
   if (input.includes("-")) return input;
 
   return null;
-}
-
-// -----------------------------
-// GEOCODING (Nominatim)
-// -----------------------------
-async function geocode(address) {
-  try {
-    const url = "https://nominatim.openstreetmap.org/search";
-
-    const response = await axios.get(url, {
-      params: {
-        q: address,
-        format: "json",
-        limit: 1,
-        countrycodes: "sk"
-      },
-      headers: {
-        "User-Agent": "TaxiGoralBot"
-      }
-    });
-
-    if (!response.data || response.data.length === 0) return null;
-
-    const place = response.data[0];
-    return [parseFloat(place.lon), parseFloat(place.lat)];
-  } catch (err) {
-    console.error("❌ Geocode error:", err.message);
-    return null;
-  }
-}
-
-// -----------------------------
-// OSRM NEAREST (snap to road)
-// -----------------------------
-async function snapToRoad(coords) {
-  try {
-    const url = `https://router.project-osrm.org/nearest/v1/driving/${coords[0]},${coords[1]}`;
-    const response = await axios.get(url);
-
-    if (!response.data.waypoints || response.data.waypoints.length === 0) {
-      return coords;
-    }
-
-    return response.data.waypoints[0].location; // [lon, lat]
-  } catch (err) {
-    console.error("❌ OSRM nearest error:", err.message);
-    return coords;
-  }
-}
-
-// -----------------------------
-// ROUTING (OSRM)
-// -----------------------------
-async function getRoute(from, to) {
-  try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${from[0]},${from[1]};${to[0]},${to[1]}`;
-
-    const response = await axios.get(url, {
-      params: { overview: "false" }
-    });
-
-    if (!response.data.routes || response.data.routes.length === 0) return null;
-
-    const route = response.data.routes[0];
-
-    return {
-      distanceKm: route.distance / 1000,
-      durationMin: route.duration / 60
-    };
-  } catch (err) {
-    console.error("❌ OSRM routing error:", err.message);
-    return null;
-  }
-}
-
-// -----------------------------
-// PRICE CALCULATION
-// -----------------------------
-function calculatePrice(distanceKm) {
-  const base = 3;
-  const perKm = 0.85;
-
-  const raw = base + distanceKm * perKm;
-
-  // mestský strop do 5 km
-  if (distanceKm <= 5) {
-    return Math.min(6.5, Math.max(4, raw)).toFixed(2);
-  }
-
-  // mimo mesta
-  return Math.max(4, raw).toFixed(2);
 }
 
 // -----------------------------
@@ -286,29 +200,11 @@ app.post("/webhook", async (req, res) => {
   if (session.step === 5) {
     session.data.phone = text;
 
-    // GEOCODE
-    let fromCoords = await geocode(session.data.from);
-    let toCoords = await geocode(session.data.to);
+    const price = "7.80"; // tvoja fixná cena
 
-    if (!fromCoords || !toCoords) {
-      await sendMessage(chatId, "❌ Nepodarilo sa nájsť adresu.");
-      return res.sendStatus(200);
-    }
-
-    // SNAP TO ROAD
-    fromCoords = await snapToRoad(fromCoords);
-    toCoords = await snapToRoad(toCoords);
-
-    // ROUTE
-    const route = await getRoute(fromCoords, toCoords);
-    if (!route) {
-      await sendMessage(chatId, "❌ Nepodarilo sa vypočítať trasu.");
-      return res.sendStatus(200);
-    }
-
-    const price = calculatePrice(route.distanceKm);
-
-    // KOLÍZIA
+    // -----------------------------
+    // KONTROLA KOLÍZIE
+    // -----------------------------
     const newStart = session.data.start;
     const newEnd = session.data.end;
 
@@ -324,7 +220,9 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
+    // -----------------------------
     // ULOŽENIE OBJEDNÁVKY
+    // -----------------------------
     orders.push({
       start: session.data.start,
       end: session.data.end,
@@ -334,7 +232,26 @@ app.post("/webhook", async (req, res) => {
       price
     });
 
-    const summary = [
+    // -----------------------------
+    // ZÁKAZNÍK – rekapitulácia BEZ ceny
+    // -----------------------------
+    const customerSummary = [
+      "📦 *Vaša objednávka bola prijatá*",
+      `📍 Odkiaľ: ${session.data.from}`,
+      `🎯 Kam: ${session.data.to}`,
+      `📅 Dátum: ${session.data.date}`,
+      `⏰ Čas: ${session.data.time}`,
+      `📞 Telefón: ${session.data.phone}`,
+      "",
+      "Cena Vašej jazdy bude uvedená v potvrdzujúcej správe na Vaše telefónne číslo."
+    ].join("\n");
+
+    await sendMessage(chatId, customerSummary);
+
+    // -----------------------------
+    // ADMIN – plná správa S cenou
+    // -----------------------------
+    const adminSummary = [
       "📦 *Nová objednávka jazdy*",
       `📍 Odkiaľ: ${session.data.from}`,
       `🎯 Kam: ${session.data.to}`,
@@ -344,10 +261,9 @@ app.post("/webhook", async (req, res) => {
       `💶 Cena: ${price} €`
     ].join("\n");
 
-    await sendMessage(chatId, "Objednávka zapísaná. 🚖");
-    await sendMessage(chatId, summary);
+    await sendMessage(ADMIN_CHAT_ID, adminSummary);
 
-    // ICS
+    // ICS event
     const filePath = addEventToCalendar({
       id: Date.now(),
       from: session.data.from,
