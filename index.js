@@ -32,7 +32,7 @@ function sendMessage(chatId, text) {
 }
 
 // -----------------------------
-// SEND DOCUMENT (ICS)
+// SEND DOCUMENT (ICS) – s opakovaním
 // -----------------------------
 async function sendDocument(chatId, filePath) {
   if (!fs.existsSync(filePath)) {
@@ -44,9 +44,28 @@ async function sendDocument(chatId, filePath) {
   formData.append("chat_id", chatId);
   formData.append("document", fs.createReadStream(filePath));
 
-  return axios.post(`${TELEGRAM_API}/sendDocument`, formData, {
-    headers: formData.getHeaders()
-  });
+  // Prvý pokus
+  try {
+    await axios.post(`${TELEGRAM_API}/sendDocument`, formData, {
+      headers: formData.getHeaders()
+    });
+    return;
+  } catch (err) {
+    console.error("⚠️ Prvý pokus o odoslanie ICS zlyhal, skúšam znova...");
+  }
+
+  // Druhý pokus po 1 sekunde
+  await new Promise(r => setTimeout(r, 1000));
+
+  try {
+    await axios.post(`${TELEGRAM_API}/sendDocument`, formData, {
+      headers: formData.getHeaders()
+    });
+    return;
+  } catch (err) {
+    console.error("❌ Druhý pokus o odoslanie ICS zlyhal.");
+    await sendMessage(ADMIN_CHAT_ID, "❗ Nepodarilo sa odoslať ICS súbor k novej objednávke.");
+  }
 }
 
 // -----------------------------
