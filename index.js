@@ -219,7 +219,7 @@ app.post("/webhook", async (req, res) => {
   if (session.step === 5) {
     session.data.phone = text;
 
-    const price = "7.80"; // tvoja fixná cena
+    const price = "Pošli cenu"; // tvoja fixná cena
 
     // -----------------------------
     // KONTROLA KOLÍZIE
