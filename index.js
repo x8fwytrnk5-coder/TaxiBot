@@ -14,7 +14,7 @@ const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 // Admin chat ID
 const ADMIN_CHAT_ID = 7646102788;
 
-// Session storage
+// Sessions + orders
 const sessions = {};
 const orders = [];
 
@@ -154,9 +154,7 @@ async function getRoute(from, to) {
     const url = `https://router.project-osrm.org/route/v1/driving/${from[0]},${from[1]};${to[0]},${to[1]}`;
 
     const response = await axios.get(url, {
-      params: {
-        overview: "false"
-      }
+      params: { overview: "false" }
     });
 
     if (!response.data.routes || response.data.routes.length === 0) return null;
@@ -176,12 +174,12 @@ async function getRoute(from, to) {
 // -----------------------------
 // PRICE CALCULATION
 // -----------------------------
-function calculatePrice(distanceKm, durationMin) {
-  const base = 7.80;
-  const perKm = 1.00;
-  const perMin = 0.20;
+function calculatePrice(distanceKm) {
+  const base = 3;        // základ
+  const perKm = 0.85;    // cena za km
+  const raw = base + distanceKm * perKm;
 
-  return (base + distanceKm * perKm + durationMin * perMin).toFixed(2);
+  return Math.max(4, raw).toFixed(2); // minimálna cena 4 €
 }
 
 // -----------------------------
@@ -282,7 +280,7 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const price = calculatePrice(route.distanceKm, route.durationMin);
+    const price = calculatePrice(route.distanceKm);
 
     // KOLÍZIA
     const newStart = session.data.start;
